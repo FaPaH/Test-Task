@@ -40,14 +40,15 @@ public class DocumentManager {
         }
 
         if (document.getId() == null) {
+            String newId = UUID.randomUUID().toString();
             document = Document.builder()
-                    .id(UUID.randomUUID().toString())
+                    .id(newId)
                     .title(document.getTitle())
                     .content(document.getContent())
                     .author(document.getAuthor())
                     .created(Instant.now())
                     .build();
-            log.info("New document created with ID: {}", document.getId());
+            log.info("New document created with ID: {}", newId);
         } else {
             log.info("Updating document with ID: {}", document.getId());
         }
