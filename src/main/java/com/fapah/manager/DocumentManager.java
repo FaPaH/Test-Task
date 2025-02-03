@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DocumentManager {
 
-    private final Map<String, Document> documentsBase = new HashMap<>();
+    private Map<String, Document> documentsBase = new HashMap<>();
 
     /**
      * Implementation of this method should upsert the document to your storage
