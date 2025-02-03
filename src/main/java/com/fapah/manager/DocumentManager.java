@@ -2,9 +2,11 @@ package com.fapah.manager;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * For implement this task focus on clear code, and make this solution as simple readable as possible
@@ -15,7 +17,10 @@ import java.util.*;
  * Implementations should be in a single class
  * This class could be auto tested
  */
+@Slf4j
 public class DocumentManager {
+
+    private Map<String, Document> documentsBase = new HashMap<>();
 
     /**
      * Implementation of this method should upsert the document to your storage
@@ -26,7 +31,29 @@ public class DocumentManager {
      */
     public Document save(Document document) {
 
-        return null;
+        if (document == null
+                || document.getTitle() == null
+                || document.getContent() == null
+                || document.getAuthor() == null) {
+            log.error("Invalid document data provided");
+            throw new IllegalArgumentException("Document, title, content, and author must not be null");
+        }
+
+        if (document.getId() == null) {
+            String newId = UUID.randomUUID().toString();
+            document = Document.builder()
+                    .id(newId)
+                    .title(document.getTitle())
+                    .content(document.getContent())
+                    .author(document.getAuthor())
+                    .created(Instant.now())
+                    .build();
+            log.info("New document created with ID: {}", newId);
+        }
+
+        documentsBase.put(document.getId(), document);
+
+        return document;
     }
 
     /**
@@ -37,7 +64,22 @@ public class DocumentManager {
      */
     public List<Document> search(SearchRequest request) {
 
-        return Collections.emptyList();
+        if (request == null) {
+            log.error("Search request is null");
+            throw new IllegalArgumentException("Search request must not be null");
+        }
+
+        log.info("Performing search with request: {}", request);
+        List<Document> results = documentsBase.values().stream()
+                .filter(doc -> request.getTitlePrefixes() == null || request.getTitlePrefixes().stream().anyMatch(doc.getTitle()::startsWith))
+                .filter(doc -> request.getContainsContents() == null || request.getContainsContents().stream().anyMatch(doc.getContent()::contains))
+                .filter(doc -> request.getAuthorIds() == null || request.getAuthorIds().contains(doc.getAuthor().getId()))
+                .filter(doc -> request.getCreatedFrom() == null || doc.getCreated().isAfter(request.getCreatedFrom()))
+                .filter(doc -> request.getCreatedTo() == null || doc.getCreated().isBefore(request.getCreatedTo()))
+                .collect(Collectors.toList());
+        log.info("Search completed. Found {} documents", results.size());
+
+        return results;
     }
 
     /**
@@ -48,7 +90,12 @@ public class DocumentManager {
      */
     public Optional<Document> findById(String id) {
 
-        return Optional.empty();
+        if (id == null || id.isBlank()) {
+            log.error("Invalid document ID provided");
+            throw new IllegalArgumentException("Document ID must not be null or blank");
+        }
+
+        return Optional.ofNullable(documentsBase.get(id));
     }
 
     @Data
