@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DocumentManager {
 
-    private Map<String, Document> documentsBase = new HashMap<>();
+    private final Map<String, Document> documentsBase = new HashMap<>();
 
     /**
      * Implementation of this method should upsert the document to your storage
@@ -49,6 +49,8 @@ public class DocumentManager {
                     .created(Instant.now())
                     .build();
             log.info("New document created with ID: {}", newId);
+        } else {
+            log.info("Updating document with ID: {}", document.getId());
         }
 
         documentsBase.put(document.getId(), document);
